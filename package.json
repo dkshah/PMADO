@@ -1,0 +1,17 @@
+{
+  "name": "ado-project-manager",
+  "version": "1.0.0",
+  "description": "Azure DevOps Project Manager Dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "azure-devops",
+    "project-management",
+    "dashboard"
+  ],
+  "author": "",
+  "license": "MIT"
+}
