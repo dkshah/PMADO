@@ -5,9 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ADO Project Manager Dashboard</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="ai-summary.css">
+    <link rel="stylesheet" href="daily-hours.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fab fa-microsoft"></i>
+            </div>
+            <div class="sidebar-title">ADO PM</div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="sidebar-nav-item active" data-tab="dashboard">
+                <i class="fas fa-chart-line"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="sidebar-nav-item" data-tab="kanban">
+                <i class="fas fa-columns"></i>
+                <span>Kanban Board</span>
+            </a>
+            <a href="#" class="sidebar-nav-item" data-tab="reports">
+                <i class="fas fa-chart-bar"></i>
+                <span>Reports</span>
+            </a>
+            <a href="#" class="sidebar-nav-item" data-tab="time">
+                <i class="fas fa-clock"></i>
+                <span>Time Tracking</span>
+            </a>
+            <a href="#" class="sidebar-nav-item" data-tab="ai-summary">
+                <i class="fas fa-magic"></i>
+                <span>AI Summary</span>
+            </a>
+        </nav>
+    </aside>
+
     <!-- Configuration Modal -->
     <div id="configModal" class="modal">
         <div class="modal-content">
@@ -39,6 +73,16 @@
                     <label for="futureReleaseQuery">Future Release Query ID:</label>
                     <input type="text" id="futureReleaseQuery" placeholder="Query ID" required>
                 </div>
+                <div class="form-group">
+                    <label for="hfApiKeyModal">
+                        <i class="fas fa-key"></i> Hugging Face API Key (Optional)
+                        <a href="https://huggingface.co/settings/tokens" target="_blank" class="help-link">
+                            <i class="fas fa-external-link-alt"></i> Get API Key
+                        </a>
+                    </label>
+                    <input type="password" id="hfApiKeyModal" placeholder="Enter your Hugging Face API key for AI Summary">
+                    <small>Required only for AI Summary feature. Your API key is stored locally.</small>
+                </div>
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Save Configuration
@@ -50,19 +94,18 @@
 
     <!-- Main Container -->
     <div class="container">
-        <!-- Combined Header & Navigation -->
+        <!-- Top Header Bar -->
         <header class="header-nav-combined">
             <div class="header-top">
                 <div class="header-left">
-                    <div class="logo-section">
-                        <i class="fab fa-microsoft"></i>
-                    </div>
-                    <div class="title-section">
-                        <h1>ADO Project Manager</h1>
-                        <p class="subtitle">Azure DevOps Dashboard</p>
+                    <div class="breadcrumb">
+                        <i class="fas fa-home"></i>
+                        <span class="breadcrumb-separator">/</span>
+                        <span id="currentPage">Dashboard</span>
                     </div>
                 </div>
                 <div class="header-right">
+                    <input type="text" class="header-search" placeholder="Search...">
                     <button id="refreshBtn" class="btn btn-icon" title="Refresh Data">
                         <i class="fas fa-sync-alt"></i>
                     </button>
@@ -74,25 +117,6 @@
                     </button>
                 </div>
             </div>
-            
-            <nav class="header-nav">
-                <button class="tab-btn active" data-tab="dashboard">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Dashboard</span>
-                </button>
-                <button class="tab-btn" data-tab="kanban">
-                    <i class="fas fa-columns"></i>
-                    <span>Kanban Board</span>
-                </button>
-                <button class="tab-btn" data-tab="reports">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Reports</span>
-                </button>
-                <button class="tab-btn" data-tab="time">
-                    <i class="fas fa-clock"></i>
-                    <span>Time Tracking</span>
-                </button>
-            </nav>
         </header>
 
         <!-- Loading Indicator -->
@@ -248,6 +272,14 @@
                     <p>Remaining Hours</p>
                 </div>
             </div>
+            
+            <!-- Daily Hours by Team Member -->
+            <div class="daily-hours-section">
+                <div id="dailyHoursTable">
+                    <!-- Daily hours table will be populated here -->
+                </div>
+            </div>
+
             <div class="time-details">
                 <h2>Time Breakdown by Work Item</h2>
                 <div id="timeTable" class="time-table">
@@ -257,6 +289,133 @@
             <div class="time-chart">
                 <h2>Hours by Team Member</h2>
                 <canvas id="teamTimeChart"></canvas>
+            </div>
+        </div>
+
+        <!-- AI Summary Tab -->
+        <div id="ai-summary" class="tab-content">
+            <div class="page-header">
+                <h2 class="page-title">AI-Powered Sprint Summary</h2>
+                <p class="page-subtitle">Generate intelligent summaries of your sprints using AI</p>
+            </div>
+
+            <!-- Configuration Section -->
+            <div class="ai-config-section">
+                <div class="config-header">
+                    <h3><i class="fas fa-cog"></i> Configuration</h3>
+                    <button id="addQueryBtn" class="btn btn-secondary">
+                        <i class="fas fa-plus"></i> Add Query
+                    </button>
+                </div>
+
+                <div class="config-content">
+                    <!-- API Key Status -->
+                    <div class="form-group">
+                        <div class="api-key-status" id="apiKeyStatus">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Configure your Hugging Face API key in Settings to use AI Summary</span>
+                            <button id="openSettingsFromAI" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-cog"></i> Open Settings
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Query IDs -->
+                    <div class="form-group">
+                        <label><i class="fas fa-list"></i> Sprint Query IDs</label>
+                        <div id="queryIdsList" class="query-ids-list">
+                            <!-- Query items will be added here -->
+                        </div>
+                    </div>
+
+                    <!-- Generate Button -->
+                    <div class="form-actions">
+                        <button id="generateSummaryBtn" class="btn btn-primary btn-large">
+                            <i class="fas fa-magic"></i> Generate AI Summary
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="aiLoadingState" class="ai-loading-state" style="display: none;">
+                <div class="loading-content">
+                    <div class="spinner-large"></div>
+                    <h3>Generating AI Summary...</h3>
+                    <p>Analyzing work items and generating insights</p>
+                </div>
+            </div>
+
+            <!-- Summary Results -->
+            <div id="summaryResults" class="summary-results" style="display: none;">
+                <div class="summary-header">
+                    <h3><i class="fas fa-chart-line"></i> Sprint Summary</h3>
+                    <div class="summary-actions">
+                        <button id="copySummaryBtn" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                        <button id="downloadSummaryBtn" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                        <button id="regenerateSummaryBtn" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-sync-alt"></i> Regenerate
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Completed Section -->
+                <div class="summary-section completed-section">
+                    <div class="section-header">
+                        <div class="section-icon completed">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="section-title">
+                            <h4>Completed</h4>
+                            <p id="completedCount">0 items completed</p>
+                        </div>
+                    </div>
+                    <div id="completedContent" class="section-content">
+                        <!-- AI generated completed summary -->
+                    </div>
+                    <div id="completedItems" class="items-list">
+                        <!-- Completed items will be listed here -->
+                    </div>
+                </div>
+
+                <!-- In Progress Section -->
+                <div class="summary-section in-progress-section">
+                    <div class="section-header">
+                        <div class="section-icon in-progress">
+                            <i class="fas fa-spinner"></i>
+                        </div>
+                        <div class="section-title">
+                            <h4>In Progress</h4>
+                            <p id="inProgressCount">0 items in progress</p>
+                        </div>
+                    </div>
+                    <div id="inProgressContent" class="section-content">
+                        <!-- AI generated in-progress summary -->
+                    </div>
+                    <div id="inProgressItems" class="items-list">
+                        <!-- In-progress items will be listed here -->
+                    </div>
+                </div>
+
+                <!-- Overall Insights -->
+                <div class="summary-section insights-section">
+                    <div class="section-header">
+                        <div class="section-icon insights">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <div class="section-title">
+                            <h4>Key Insights</h4>
+                            <p>AI-generated observations and recommendations</p>
+                        </div>
+                    </div>
+                    <div id="insightsContent" class="section-content">
+                        <!-- AI generated insights -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -269,6 +428,7 @@
     <script src="kanban.js"></script>
     <script src="reports.js"></script>
     <script src="time-tracking.js"></script>
+    <script src="ai-summary.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

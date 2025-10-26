@@ -42,11 +42,14 @@ class App {
 
     // Setup event listeners
     setupEventListeners() {
-        // Tab navigation
-        document.querySelectorAll('.tab-btn').forEach(btn => {
+        // Tab navigation (both old tabs and new sidebar)
+        document.querySelectorAll('.tab-btn, .sidebar-nav-item').forEach(btn => {
             btn.addEventListener('click', (e) => {
+                e.preventDefault();
                 const tab = e.currentTarget.dataset.tab;
-                this.switchTab(tab);
+                if (tab) {
+                    this.switchTab(tab);
+                }
             });
         });
 
@@ -98,8 +101,8 @@ class App {
     async switchTab(tabName) {
         this.currentTab = tabName;
 
-        // Update tab buttons
-        document.querySelectorAll('.tab-btn').forEach(btn => {
+        // Update tab buttons and sidebar items
+        document.querySelectorAll('.tab-btn, .sidebar-nav-item').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.tab === tabName);
         });
 
@@ -107,6 +110,19 @@ class App {
         document.querySelectorAll('.tab-content').forEach(content => {
             content.classList.toggle('active', content.id === tabName);
         });
+
+        // Update breadcrumb
+        const breadcrumbPage = document.getElementById('currentPage');
+        if (breadcrumbPage) {
+            const pageNames = {
+                'dashboard': 'Dashboard',
+                'kanban': 'Kanban Board',
+                'reports': 'Reports',
+                'time': 'Time Tracking',
+                'settings': 'Settings'
+            };
+            breadcrumbPage.textContent = pageNames[tabName] || 'Dashboard';
+        }
 
         // Initialize tab content if needed
         if (this.initialized) {
@@ -128,6 +144,9 @@ class App {
                 break;
             case 'time':
                 await timeTracking.refresh();
+                break;
+            case 'ai-summary':
+                // AI Summary is initialized on page load
                 break;
         }
     }
@@ -162,6 +181,12 @@ class App {
             document.getElementById('previousSprintQuery').value = this.config.queries.previousSprint;
             document.getElementById('futureReleaseQuery').value = this.config.queries.futureRelease;
         }
+
+        // Load Hugging Face API key
+        const savedHfKey = localStorage.getItem('hfApiKey');
+        if (savedHfKey) {
+            document.getElementById('hfApiKeyModal').value = savedHfKey;
+        }
     }
 
     // Handle config form submission
@@ -182,6 +207,12 @@ class App {
 
         // Save configuration
         this.saveConfig(config);
+
+        // Save Hugging Face API key
+        const hfApiKey = document.getElementById('hfApiKeyModal').value.trim();
+        if (hfApiKey) {
+            localStorage.setItem('hfApiKey', hfApiKey);
+        }
 
         // Hide modal
         document.getElementById('configModal').style.display = 'none';
@@ -223,12 +254,13 @@ function showLoading(show) {
     indicator.style.display = show ? 'flex' : 'none';
 }
 
-function showNotification(message) {
+function showNotification(message, type = 'success') {
     // Create notification element
     const notification = document.createElement('div');
-    notification.className = 'notification success';
+    notification.className = `notification ${type}`;
+    const icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
     notification.innerHTML = `
-        <i class="fas fa-check-circle"></i>
+        <i class="fas ${icon}"></i>
         <span>${message}</span>
     `;
     
@@ -269,4 +301,9 @@ function showError(message) {
 document.addEventListener('DOMContentLoaded', () => {
     const app = new App();
     app.init();
+    
+    // Initialize AI Summary module
+    if (typeof aiSummary !== 'undefined') {
+        aiSummary.init();
+    }
 });

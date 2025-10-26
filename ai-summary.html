@@ -1,0 +1,127 @@
+<!-- AI Summary Section (to be included in main HTML) -->
+<div id="ai-summary" class="tab-content">
+    <div class="page-header">
+        <h2 class="page-title">AI-Powered Sprint Summary</h2>
+        <p class="page-subtitle">Generate intelligent summaries of your sprints using AI</p>
+    </div>
+
+    <!-- Configuration Section -->
+    <div class="ai-config-section">
+        <div class="config-header">
+            <h3><i class="fas fa-cog"></i> Configuration</h3>
+            <button id="addQueryBtn" class="btn btn-secondary">
+                <i class="fas fa-plus"></i> Add Query
+            </button>
+        </div>
+
+        <div class="config-content">
+            <!-- Hugging Face API Key -->
+            <div class="form-group">
+                <label for="hfApiKey">
+                    <i class="fas fa-key"></i> Hugging Face API Key
+                    <a href="https://huggingface.co/settings/tokens" target="_blank" class="help-link">
+                        <i class="fas fa-external-link-alt"></i> Get API Key
+                    </a>
+                </label>
+                <input type="password" id="hfApiKey" placeholder="Enter your Hugging Face API key" class="form-control">
+                <small>Your API key is stored locally and never sent to our servers</small>
+            </div>
+
+            <!-- Query IDs -->
+            <div class="form-group">
+                <label><i class="fas fa-list"></i> Sprint Query IDs</label>
+                <div id="queryIdsList" class="query-ids-list">
+                    <!-- Query items will be added here -->
+                </div>
+            </div>
+
+            <!-- Generate Button -->
+            <div class="form-actions">
+                <button id="generateSummaryBtn" class="btn btn-primary btn-large">
+                    <i class="fas fa-magic"></i> Generate AI Summary
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="aiLoadingState" class="ai-loading-state" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner-large"></div>
+            <h3>Generating AI Summary...</h3>
+            <p>Analyzing work items and generating insights</p>
+        </div>
+    </div>
+
+    <!-- Summary Results -->
+    <div id="summaryResults" class="summary-results" style="display: none;">
+        <div class="summary-header">
+            <h3><i class="fas fa-chart-line"></i> Sprint Summary</h3>
+            <div class="summary-actions">
+                <button id="copySummaryBtn" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-copy"></i> Copy
+                </button>
+                <button id="downloadSummaryBtn" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-download"></i> Download
+                </button>
+                <button id="regenerateSummaryBtn" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-sync-alt"></i> Regenerate
+                </button>
+            </div>
+        </div>
+
+        <!-- Completed Section -->
+        <div class="summary-section completed-section">
+            <div class="section-header">
+                <div class="section-icon completed">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="section-title">
+                    <h4>Completed</h4>
+                    <p id="completedCount">0 items completed</p>
+                </div>
+            </div>
+            <div id="completedContent" class="section-content">
+                <!-- AI generated completed summary -->
+            </div>
+            <div id="completedItems" class="items-list">
+                <!-- Completed items will be listed here -->
+            </div>
+        </div>
+
+        <!-- In Progress Section -->
+        <div class="summary-section in-progress-section">
+            <div class="section-header">
+                <div class="section-icon in-progress">
+                    <i class="fas fa-spinner"></i>
+                </div>
+                <div class="section-title">
+                    <h4>In Progress</h4>
+                    <p id="inProgressCount">0 items in progress</p>
+                </div>
+            </div>
+            <div id="inProgressContent" class="section-content">
+                <!-- AI generated in-progress summary -->
+            </div>
+            <div id="inProgressItems" class="items-list">
+                <!-- In-progress items will be listed here -->
+            </div>
+        </div>
+
+        <!-- Overall Insights -->
+        <div class="summary-section insights-section">
+            <div class="section-header">
+                <div class="section-icon insights">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <div class="section-title">
+                    <h4>Key Insights</h4>
+                    <p>AI-generated observations and recommendations</p>
+                </div>
+            </div>
+            <div id="insightsContent" class="section-content">
+                <!-- AI generated insights -->
+            </div>
+        </div>
+    </div>
+</div>
