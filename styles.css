@@ -1140,8 +1140,9 @@ body {
 
 .kanban-board {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 0;
+    height: calc(100vh - 250px);
 }
 
 .kanban-column {
@@ -1150,7 +1151,7 @@ body {
     box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
-    max-height: calc(100vh - 250px);
+    height: 100%;
     border: 1px solid var(--border-light);
 }
 

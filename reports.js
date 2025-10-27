@@ -51,11 +51,11 @@ class Reports {
 
         // Calculate story points completed
         const currentPoints = this.currentSprintData
-            .filter(item => ['Closed', 'Done'].includes(item.state))
+            .filter(item => ['Closed', 'Done', 'Completed'].includes(item.state))
             .reduce((sum, item) => sum + (item.storyPoints || 0), 0);
 
         const previousPoints = this.previousSprintData
-            .filter(item => ['Closed', 'Done'].includes(item.state))
+            .filter(item => ['Closed', 'Done', 'Completed'].includes(item.state))
             .reduce((sum, item) => sum + (item.storyPoints || 0), 0);
 
         this.charts.velocity = new Chart(ctx, {

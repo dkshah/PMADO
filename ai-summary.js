@@ -220,15 +220,17 @@ class AISummary {
 
             // Categorize work items
             const completed = this.workItems.filter(item => 
-                item.fields['System.State'] === 'Done' || 
-                item.fields['System.State'] === 'Closed' ||
-                item.fields['System.State'] === 'Resolved'
+                item.state === 'Done' || 
+                item.state === 'Closed' ||
+                item.state === 'Completed' ||
+                item.state === 'Resolved'
             );
 
             const inProgress = this.workItems.filter(item => 
-                item.fields['System.State'] !== 'Done' && 
-                item.fields['System.State'] !== 'Closed' &&
-                item.fields['System.State'] !== 'Resolved'
+                item.state !== 'Done' && 
+                item.state !== 'Closed' &&
+                item.state !== 'Completed' &&
+                item.state !== 'Resolved'
             );
 
             // Generate AI summaries
@@ -251,7 +253,7 @@ class AISummary {
     // Fetch work items from ADO
     async fetchWorkItems(queryId) {
         try {
-            const workItems = await adoService.getWorkItemsByQuery(queryId);
+            const workItems = await adoService.fetchWorkItemsFromQuery(queryId);
             return workItems;
         } catch (error) {
             console.error('Error fetching work items:', error);
@@ -269,10 +271,10 @@ class AISummary {
 
         // Prepare context for AI
         const itemsText = items.map(item => {
-            const title = item.fields['System.Title'];
-            const type = item.fields['System.WorkItemType'];
-            const state = item.fields['System.State'];
-            const assignedTo = item.fields['System.AssignedTo']?.displayName || 'Unassigned';
+            const title = item.title;
+            const type = item.type;
+            const state = item.state;
+            const assignedTo = item.assignedTo || 'Unassigned';
             return `- ${type}: ${title} (${state}, Assigned to: ${assignedTo})`;
         }).join('\n');
 
@@ -296,8 +298,9 @@ class AISummary {
         }
 
         const completed = items.filter(item => 
-            item.fields['System.State'] === 'Done' || 
-            item.fields['System.State'] === 'Closed'
+            item.state === 'Done' || 
+            item.state === 'Closed' ||
+            item.state === 'Completed'
         ).length;
 
         const total = items.length;
@@ -305,7 +308,7 @@ class AISummary {
 
         const itemsByType = {};
         items.forEach(item => {
-            const type = item.fields['System.WorkItemType'];
+            const type = item.type;
             itemsByType[type] = (itemsByType[type] || 0) + 1;
         });
 
@@ -367,13 +370,13 @@ Provide actionable insights about team performance, potential risks, and recomme
         document.getElementById('completedItems').innerHTML = completed.map(item => `
             <div class="work-item-card">
                 <div class="work-item-header">
-                    <span class="work-item-type ${item.fields['System.WorkItemType'].toLowerCase()}">${item.fields['System.WorkItemType']}</span>
+                    <span class="work-item-type ${item.type.toLowerCase()}">${item.type}</span>
                     <span class="work-item-id">#${item.id}</span>
                 </div>
-                <div class="work-item-title">${item.fields['System.Title']}</div>
+                <div class="work-item-title">${item.title}</div>
                 <div class="work-item-meta">
-                    <span><i class="fas fa-user"></i> ${item.fields['System.AssignedTo']?.displayName || 'Unassigned'}</span>
-                    <span><i class="fas fa-check-circle"></i> ${item.fields['System.State']}</span>
+                    <span><i class="fas fa-user"></i> ${item.assignedTo || 'Unassigned'}</span>
+                    <span><i class="fas fa-check-circle"></i> ${item.state}</span>
                 </div>
             </div>
         `).join('');
@@ -387,13 +390,13 @@ Provide actionable insights about team performance, potential risks, and recomme
         document.getElementById('inProgressItems').innerHTML = inProgress.map(item => `
             <div class="work-item-card">
                 <div class="work-item-header">
-                    <span class="work-item-type ${item.fields['System.WorkItemType'].toLowerCase()}">${item.fields['System.WorkItemType']}</span>
+                    <span class="work-item-type ${item.type.toLowerCase()}">${item.type}</span>
                     <span class="work-item-id">#${item.id}</span>
                 </div>
-                <div class="work-item-title">${item.fields['System.Title']}</div>
+                <div class="work-item-title">${item.title}</div>
                 <div class="work-item-meta">
-                    <span><i class="fas fa-user"></i> ${item.fields['System.AssignedTo']?.displayName || 'Unassigned'}</span>
-                    <span><i class="fas fa-spinner"></i> ${item.fields['System.State']}</span>
+                    <span><i class="fas fa-user"></i> ${item.assignedTo || 'Unassigned'}</span>
+                    <span><i class="fas fa-spinner"></i> ${item.state}</span>
                 </div>
             </div>
         `).join('');

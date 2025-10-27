@@ -34,7 +34,7 @@ const KANBAN_COLUMNS = [
     { id: 'new', title: 'New', states: ['New', 'To Do'] },
     { id: 'active', title: 'Active', states: ['Active', 'In Progress', 'Committed'] },
     { id: 'resolved', title: 'Resolved', states: ['Resolved', 'Ready for Test'] },
-    { id: 'closed', title: 'Closed', states: ['Closed', 'Done'] }
+    { id: 'completed', title: 'Completed', states: ['Closed', 'Done', 'Completed'] }
 ];
 
 // Work item type colors

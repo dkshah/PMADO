@@ -59,9 +59,9 @@ const KANBAN_COLUMNS = [
         states: ['Resolved', 'Ready for Test'] 
     },
     { 
-        id: 'closed', 
-        title: 'Closed', 
-        states: ['Closed', 'Done'] 
+        id: 'completed', 
+        title: 'Completed', 
+        states: ['Closed', 'Done', 'Completed'] 
     }
 ];
 

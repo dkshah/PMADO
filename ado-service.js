@@ -63,12 +63,28 @@ class ADOService {
 
             const wiqlData = await wiqlResponse.json();
             
-            if (!wiqlData.workItems || wiqlData.workItems.length === 0) {
+            // Handle both flat and tree query results
+            let workItemIds = [];
+            
+            if (wiqlData.workItemRelations && wiqlData.workItemRelations.length > 0) {
+                // Tree query result - extract IDs from relations
+                workItemIds = wiqlData.workItemRelations
+                    .filter(relation => relation.target) // Filter out null targets (root level)
+                    .map(relation => relation.target.id);
+                
+                // Remove duplicates (parent items may appear multiple times)
+                workItemIds = [...new Set(workItemIds)];
+            } else if (wiqlData.workItems && wiqlData.workItems.length > 0) {
+                // Flat query result - extract IDs directly
+                workItemIds = wiqlData.workItems.map(wi => wi.id);
+            }
+            
+            if (workItemIds.length === 0) {
                 return [];
             }
 
             // Get work item IDs
-            const ids = wiqlData.workItems.map(wi => wi.id).join(',');
+            const ids = workItemIds.join(',');
             
             // Fetch work item details
             const workItemsUrl = `${this.baseUrl}/wit/workitems?ids=${ids}&$expand=all&api-version=${this.config.apiVersion}`;
@@ -196,7 +212,7 @@ class ADOService {
 
         workItems.forEach(item => {
             // State counts
-            if (['Closed', 'Done', 'Resolved'].includes(item.state)) {
+            if (['Closed', 'Done', 'Completed', 'Resolved'].includes(item.state)) {
                 stats.completed++;
             } else if (['Active', 'In Progress', 'Committed'].includes(item.state)) {
                 stats.inProgress++;
