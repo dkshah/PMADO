@@ -73,6 +73,26 @@ class App {
             e.preventDefault();
             this.handleConfigSubmit();
         });
+
+        // Add team member button
+        document.getElementById('addTeamMember')?.addEventListener('click', () => {
+            this.addTeamMember();
+        });
+
+        // Remove team member button (delegated)
+        document.getElementById('teamMembersContainer')?.addEventListener('click', (e) => {
+            if (e.target.closest('.remove-member')) {
+                const memberEntry = e.target.closest('.team-member-entry');
+                if (memberEntry) {
+                    memberEntry.remove();
+                }
+            }
+        });
+
+        // Cancel button
+        document.getElementById('cancelConfig')?.addEventListener('click', () => {
+            document.getElementById('configModal').style.display = 'none';
+        });
     }
 
     // Setup theme
@@ -167,6 +187,23 @@ class App {
         }
     }
 
+    // Add a new team member row
+    addTeamMember(name = '', email = '') {
+        const container = document.getElementById('teamMembersContainer');
+        if (!container) return;
+
+        const memberHtml = `
+            <div class="team-member-entry">
+                <input type="text" class="member-name" placeholder="Display Name" value="${name}" style="width: 35%;">
+                <input type="email" class="member-email" placeholder="Git Email" value="${email}" style="width: 60%;">
+                <button type="button" class="btn-icon remove-member" title="Remove member">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', memberHtml);
+    }
+
     // Show configuration modal
     showConfigModal() {
         const modal = document.getElementById('configModal');
@@ -174,12 +211,36 @@ class App {
 
         // Populate form with existing config
         if (this.config) {
-            document.getElementById('orgUrl').value = this.config.organizationUrl;
-            document.getElementById('projectName').value = this.config.projectName;
-            document.getElementById('pat').value = this.config.personalAccessToken;
-            document.getElementById('currentSprintQuery').value = this.config.queries.currentSprint;
-            document.getElementById('previousSprintQuery').value = this.config.queries.previousSprint;
-            document.getElementById('futureReleaseQuery').value = this.config.queries.futureRelease;
+            // Azure DevOps settings
+            document.getElementById('orgUrl').value = this.config.organizationUrl || '';
+            document.getElementById('projectName').value = this.config.projectName || '';
+            document.getElementById('pat').value = this.config.personalAccessToken || '';
+            document.getElementById('currentSprintQuery').value = this.config.queries?.currentSprint || '';
+            document.getElementById('previousSprintQuery').value = this.config.queries?.previousSprint || '';
+            document.getElementById('futureReleaseQuery').value = this.config.queries?.futureRelease || '';
+            
+            // Git settings
+            document.getElementById('gitRepoName').value = this.config.gitConfig?.repository || '';
+            document.getElementById('gitDefaultBranch').value = this.config.gitConfig?.defaultBranch || 'main';
+            document.getElementById('gitDevBranch').value = this.config.gitConfig?.developmentBranch || 'develop';
+            
+            // Clear existing team members
+            const container = document.getElementById('teamMembersContainer');
+            if (container) container.innerHTML = '';
+            
+            // Add team members
+            const teamMembers = this.config.gitConfig?.teamMembers || [];
+            if (teamMembers.length > 0) {
+                teamMembers.forEach(member => {
+                    this.addTeamMember(member.name, member.email);
+                });
+            } else {
+                // Add one empty row by default
+                this.addTeamMember();
+            }
+        } else {
+            // Add one empty row by default when no config exists
+            this.addTeamMember();
         }
 
         // Load Hugging Face API key
@@ -191,6 +252,17 @@ class App {
 
     // Handle config form submission
     async handleConfigSubmit() {
+        // Collect team members
+        const teamMembers = [];
+        const memberEntries = document.querySelectorAll('.team-member-entry');
+        memberEntries.forEach(entry => {
+            const name = entry.querySelector('.member-name').value.trim();
+            const email = entry.querySelector('.member-email').value.trim();
+            if (name && email) {
+                teamMembers.push({ name, email });
+            }
+        });
+
         const config = {
             organizationUrl: document.getElementById('orgUrl').value.trim(),
             projectName: document.getElementById('projectName').value.trim(),
@@ -199,6 +271,12 @@ class App {
                 currentSprint: document.getElementById('currentSprintQuery').value.trim(),
                 previousSprint: document.getElementById('previousSprintQuery').value.trim(),
                 futureRelease: document.getElementById('futureReleaseQuery').value.trim()
+            },
+            gitConfig: {
+                repository: document.getElementById('gitRepoName').value.trim(),
+                defaultBranch: document.getElementById('gitDefaultBranch').value.trim() || 'main',
+                developmentBranch: document.getElementById('gitDevBranch').value.trim() || 'develop',
+                teamMembers: teamMembers
             },
             apiVersion: ADO_CONFIG.apiVersion,
             refreshInterval: ADO_CONFIG.refreshInterval,
@@ -209,7 +287,7 @@ class App {
         this.saveConfig(config);
 
         // Save Hugging Face API key
-        const hfApiKey = document.getElementById('hfApiKeyModal').value.trim();
+        const hfApiKey = document.getElementById('hfApiKeyModal')?.value.trim();
         if (hfApiKey) {
             localStorage.setItem('hfApiKey', hfApiKey);
         }

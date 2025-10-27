@@ -15,6 +15,8 @@ class TimeTracking {
         try {
             showLoading(true);
             this.workItems = await adoService.fetchCurrentSprint();
+            // Get iteration dates for the sprint
+            this.iterationDates = adoService.getIterationDates(this.workItems);
         } catch (error) {
             console.error('Error loading time tracking data:', error);
             showError('Failed to load time tracking data.');
@@ -73,11 +75,17 @@ class TimeTracking {
             teamMembers[assignee].totalHours += item.completedWork || 0;
         });
 
-        // Generate last 7 days
+        // Generate days based on iteration dates
         const days = [];
-        const today = new Date();
-        for (let i = 6; i >= 0; i--) {
-            const date = new Date(today);
+        const startDate = this.iterationDates ? this.iterationDates.startDate : new Date();
+        const endDate = this.iterationDates ? this.iterationDates.endDate : new Date();
+        
+        // Calculate number of days in sprint
+        const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+        const numDays = Math.min(Math.max(daysDiff, 7), 14); // Between 7 and 14 days
+        
+        for (let i = numDays - 1; i >= 0; i--) {
+            const date = new Date(endDate);
             date.setDate(date.getDate() - i);
             days.push(date);
         }
@@ -85,7 +93,7 @@ class TimeTracking {
         // Simulate daily distribution (in real app, fetch from ADO activity logs)
         Object.keys(teamMembers).forEach(member => {
             const total = teamMembers[member].totalHours;
-            const avgPerDay = total / 7;
+            const avgPerDay = total / days.length;
             
             days.forEach((date, index) => {
                 const dateKey = date.toISOString().split('T')[0];
@@ -182,7 +190,7 @@ class TimeTracking {
         
         // Filter items with time tracking
         const itemsWithTime = this.workItems.filter(item => 
-            item.originalEstimate > 0 || item.completedWork > 0 || item.remainingWork > 0
+            item.baselineWork > 0 || item.completedWork > 0 || item.remainingWork > 0
         );
 
         if (itemsWithTime.length === 0) {
@@ -201,9 +209,9 @@ class TimeTracking {
                         <th>Title</th>
                         <th>Type</th>
                         <th>Assignee</th>
-                        <th>Original Est.</th>
-                        <th>Completed</th>
-                        <th>Remaining</th>
+                        <th>Baseline Work</th>
+                        <th>Completed Work</th>
+                        <th>Remaining Work</th>
                         <th>Progress</th>
                     </tr>
                 </thead>
@@ -213,7 +221,7 @@ class TimeTracking {
                 <tfoot>
                     <tr class="total-row">
                         <td colspan="4"><strong>Total</strong></td>
-                        <td><strong>${this.sumField(itemsWithTime, 'originalEstimate')}h</strong></td>
+                        <td><strong>${this.sumField(itemsWithTime, 'baselineWork')}h</strong></td>
                         <td><strong>${this.sumField(itemsWithTime, 'completedWork')}h</strong></td>
                         <td><strong>${this.sumField(itemsWithTime, 'remainingWork')}h</strong></td>
                         <td></td>
@@ -235,7 +243,7 @@ class TimeTracking {
                 <td class="title-cell">${this.escapeHtml(item.title)}</td>
                 <td><span class="type-badge" style="background: ${typeColor}">${item.type}</span></td>
                 <td>${this.escapeHtml(item.assignedTo)}</td>
-                <td>${item.originalEstimate || 0}h</td>
+                <td>${item.baselineWork || 0}h</td>
                 <td>${item.completedWork || 0}h</td>
                 <td>${item.remainingWork || 0}h</td>
                 <td>

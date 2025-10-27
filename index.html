@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="ai-summary.css">
     <link rel="stylesheet" href="daily-hours.css">
+    <link rel="stylesheet" href="styles/git-dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -38,6 +39,10 @@
             <a href="#" class="sidebar-nav-item" data-tab="ai-summary">
                 <i class="fas fa-magic"></i>
                 <span>AI Summary</span>
+            </a>
+            <a href="#" class="sidebar-nav-item" data-tab="git">
+                <i class="fab fa-git-alt"></i>
+                <span>Git Dashboard</span>
             </a>
         </nav>
     </aside>
@@ -81,8 +86,50 @@
                         </a>
                     </label>
                     <input type="password" id="hfApiKeyModal" placeholder="Enter your Hugging Face API key for AI Summary">
-                    <small>Required only for AI Summary feature. Your API key is stored locally.</small>
+                    <small>Required for AI Summary feature. Your key is stored locally in your browser.</small>
                 </div>
+                
+                <!-- Git Configuration Section -->
+                <div class="form-section">
+                    <h3><i class="fab fa-git-alt"></i> Git Configuration</h3>
+                    
+                    <div class="form-group">
+                        <label for="gitRepoName">Repository Name:</label>
+                        <input type="text" id="gitRepoName" placeholder="Your Git repository name">
+                        <small>The name of your Git repository in Azure DevOps</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gitDefaultBranch">Default Branch:</label>
+                        <input type="text" id="gitDefaultBranch" placeholder="main" value="main">
+                        <small>Default branch for your repository (usually 'main' or 'master')</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gitDevBranch">Development Branch:</label>
+                        <input type="text" id="gitDevBranch" placeholder="develop" value="develop">
+                        <small>Development branch for your repository (usually 'develop')</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Team Members:</label>
+                        <div id="teamMembersContainer">
+                            <!-- Team members will be added here dynamically -->
+                            <div class="team-member-entry">
+                                <input type="text" class="member-name" placeholder="Display Name" style="width: 35%;">
+                                <input type="email" class="member-email" placeholder="Git Email" style="width: 60%;">
+                                <button type="button" class="btn-icon remove-member" title="Remove member">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" id="addTeamMember" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-plus"></i> Add Team Member
+                        </button>
+                        <small>Add all team members who contribute to the repository</small>
+                    </div>
+                </div>
+                
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Save Configuration
@@ -234,24 +281,55 @@
             </div>
         </div>
 
-        <!-- Reports Tab -->
-        <div id="reports" class="tab-content">
-            <div class="reports-grid">
-                <div class="report-card">
-                    <h3>Sprint Velocity</h3>
-                    <canvas id="velocityChart"></canvas>
+        <!-- Git Dashboard Tab -->
+        <div id="git" class="tab-content">
+            <div class="page-header">
+                <h2 class="page-title">Git Commit Dashboard</h2>
+                <p class="page-subtitle">Track commit activity by developer for the current sprint</p>
+                
+                <div class="commit-controls">
+                    <div class="timeframe-selector">
+                        <label for="commitTimeframe">Timeframe:</label>
+                        <select id="commitTimeframe" class="form-control">
+                            <option value="7">Last 7 days</option>
+                            <option value="14" selected>Current Sprint</option>
+                            <option value="30">Last 30 days</option>
+                        </select>
+                    </div>
+                    <button id="refreshCommits" class="btn btn-primary">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
                 </div>
-                <div class="report-card">
-                    <h3>Burndown Chart</h3>
-                    <canvas id="burndownChart"></canvas>
+
+                <div class="commit-table-container">
+                    <div class="table-responsive">
+                        <table class="commit-table">
+                            <thead>
+                                <tr>
+                                    <th>Developer</th>
+                                    <!-- Dates will be populated by JavaScript -->
+                                </tr>
+                            </thead>
+                            <tbody id="commitTableBody">
+                                <!-- Rows will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="report-card">
-                    <h3>Work Distribution</h3>
-                    <canvas id="distributionChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Commit Details Modal -->
+        <div id="commitDetailsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Commit Details</h3>
+                    <span class="close">&times;</span>
                 </div>
-                <div class="report-card">
-                    <h3>Priority Breakdown</h3>
-                    <canvas id="priorityChart"></canvas>
+                <div class="modal-body">
+                    <div id="commitDetailsContent">
+                        <!-- Commit details will be populated here -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -429,6 +507,7 @@
     <script src="reports.js"></script>
     <script src="time-tracking.js"></script>
     <script src="ai-summary.js"></script>
+    <script src="git-dashboard.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

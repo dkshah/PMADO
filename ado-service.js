@@ -120,6 +120,8 @@ class ADOService {
                 tags: fields['System.Tags'] || '',
                 createdDate: fields['System.CreatedDate'],
                 changedDate: fields['System.ChangedDate'],
+                iterationPath: fields['System.IterationPath'] || '',
+                baselineWork: fields['Microsoft.VSTS.Scheduling.BaselineWork'] || 0,
                 completedWork: fields['Microsoft.VSTS.Scheduling.CompletedWork'] || 0,
                 remainingWork: fields['Microsoft.VSTS.Scheduling.RemainingWork'] || 0,
                 originalEstimate: fields['Microsoft.VSTS.Scheduling.OriginalEstimate'] || 0,
@@ -195,6 +197,36 @@ class ADOService {
         };
     }
 
+    // Get iteration dates from iteration path
+    getIterationDates(workItems) {
+        // Extract unique iteration paths
+        const iterations = new Set();
+        workItems.forEach(item => {
+            if (item.iterationPath) {
+                iterations.add(item.iterationPath);
+            }
+        });
+
+        // For now, return a date range based on work item dates
+        // In a full implementation, you would fetch iteration details from ADO API
+        const dates = workItems
+            .map(item => new Date(item.changedDate))
+            .filter(date => !isNaN(date));
+        
+        if (dates.length === 0) {
+            const today = new Date();
+            return {
+                startDate: new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000), // 14 days ago
+                endDate: today
+            };
+        }
+
+        return {
+            startDate: new Date(Math.min(...dates)),
+            endDate: new Date(Math.max(...dates))
+        };
+    }
+
     // Get summary statistics
     getSummaryStats(workItems) {
         const stats = {
@@ -232,7 +264,7 @@ class ADOService {
             stats.byAssignee[item.assignedTo] = (stats.byAssignee[item.assignedTo] || 0) + 1;
 
             // Hours
-            stats.totalHours += item.originalEstimate;
+            stats.totalHours += item.baselineWork || item.originalEstimate;
             stats.completedHours += item.completedWork;
             stats.remainingHours += item.remainingWork;
         });

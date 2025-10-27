@@ -729,16 +729,73 @@ body {
 .form-group small {
     display: block;
     margin-top: 6px;
-    color: var(--text-secondary);
-    font-size: 12px;
-    line-height: 1.5;
 }
 
 .form-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
-    margin-top: 30px;
+    gap: var(--spacing);
+    margin-top: var(--spacing-lg);
+}
+
+/* Git Configuration Section */
+.git-config-section {
+    margin: var(--spacing-lg) 0;
+    padding: var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-light);
+}
+
+.git-config-section h3 {
+    margin-top: 0;
+    margin-bottom: var(--spacing);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 1.1rem;
+}
+
+.git-config-section h3 i {
+    font-size: 1rem;
+}
+
+.git-config-entry {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+    align-items: center;
+}
+
+.git-config-entry input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.git-config-entry .remove-config {
+    background: none;
+    border: none;
+    color: var(--danger-color);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 4px;
+    transition: var(--transition-fast);
+}
+
+.git-config-entry .remove-config:hover {
+    background: var(--danger-light);
+}
+
+#addGitConfig {
+    margin-top: var(--spacing-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
 }
 
 /* Sprint Selector */

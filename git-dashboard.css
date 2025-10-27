@@ -1,0 +1,346 @@
+/* Git Dashboard Styles */
+.git-dashboard {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.commit-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.timeframe-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.timeframe-selector label {
+    font-weight: 600;
+    color: #495057;
+}
+
+.timeframe-selector select {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: #fff;
+    font-size: 14px;
+}
+
+.commit-table-container {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.commit-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.commit-table th,
+.commit-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.commit-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+.commit-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.commit-count {
+    display: inline-block;
+    min-width: 24px;
+    height: 24px;
+    line-height: 24px;
+    text-align: center;
+    background-color: #e9ecef;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.commit-count:hover {
+    background-color: #dee2e6;
+    transform: translateY(-1px);
+}
+
+.commit-count.has-commits {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.commit-count.has-commits:hover {
+    background-color: #bbdefb;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: #fff;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    position: relative;
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #212529;
+}
+
+.close {
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #6c757d;
+}
+
+.close:hover {
+    color: #343a40;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.commit-detail-item {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+.commit-detail-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.commit-message {
+    font-weight: 500;
+    margin-bottom: 5px;
+    color: #212529;
+}
+
+.commit-meta {
+    font-size: 13px;
+    color: #6c757d;
+    display: flex;
+    gap: 15px;
+}
+
+.commit-link {
+    color: #1976d2;
+    text-decoration: none;
+}
+
+.commit-link:hover {
+    text-decoration: underline;
+}
+
+.work-item-link {
+    display: inline-block;
+    background-color: #e9ecef;
+    color: #495057;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-right: 5px;
+    text-decoration: none;
+}
+
+.work-item-link:hover {
+    background-color: #dee2e6;
+}
+
+.no-commits {
+    color: #6c757d;
+    font-style: italic;
+    padding: 20px;
+    text-align: center;
+}
+
+/* PR Grid */
+.pr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.pr-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 15px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.pr-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pr-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.pr-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    text-decoration: none;
+    flex: 1;
+}
+
+.pr-title:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+.pr-status {
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+    margin-left: 10px;
+}
+
+.pr-status.active {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.pr-status.completed {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.pr-status.abandoned {
+    background-color: #ffebee;
+    color: #d32f2f;
+}
+
+.pr-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* Commit Activity */
+.commit-activity {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 20px;
+    overflow-x: auto;
+}
+
+.commit-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.commit-table th,
+.commit-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.commit-table th {
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    background: var(--bg-primary);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.commit-table tr:hover {
+    background-color: var(--hover-bg);
+}
+
+.commit-table td {
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.commit-table td:first-child {
+    text-align: left;
+    font-weight: 500;
+}
+
+.commit-table .total {
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--bg-primary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .pr-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .commit-activity {
+        padding: 10px;
+    }
+    
+    .commit-table th,
+    .commit-table td {
+        padding: 8px 6px;
+        font-size: 13px;
+    }
+}
