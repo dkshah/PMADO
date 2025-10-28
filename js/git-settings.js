@@ -92,8 +92,6 @@ class GitSettings {
     }
 }
 
-// Create and export a singleton instance
+// Create a singleton instance and make it globally available
 const gitSettings = new GitSettings();
-window.gitSettings = gitSettings; // Make it globally available if needed
-
-export default gitSettings;
+window.gitSettings = gitSettings;

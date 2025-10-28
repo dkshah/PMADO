@@ -3,7 +3,7 @@
  * Provides a simple way to show toast notifications in the application
  */
 
-export function showToast(message, type = 'info', duration = 5000) {
+function showToast(message, type = 'info', duration = 5000) {
     // Create container if it doesn't exist
     let container = document.getElementById('toast-container');
     if (!container) {
@@ -47,7 +47,7 @@ export function showToast(message, type = 'info', duration = 5000) {
     return toast;
 }
 
-export function hideToast(toast) {
+function hideToast(toast) {
     if (!toast) return;
     
     // Start hide animation
@@ -62,7 +62,7 @@ export function hideToast(toast) {
 }
 
 // Convenience methods
-export const Toast = {
+const Toast = {
     success: (message, duration) => showToast(message, 'success', duration),
     error: (message, duration) => showToast(message, 'error', duration),
     warning: (message, duration) => showToast(message, 'warning', duration),

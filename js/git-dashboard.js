@@ -5,6 +5,7 @@ class GitDashboard {
         this.commitStats = {};
         this.timeframe = 14; // Default to current sprint (14 days)
         this.commitDetails = {}; // Store commit details for the modal
+        this.teamMemberEmails = new Map(); // Initialize as empty Map
         
         // Initialize event listeners
         this.initializeEventListeners();
@@ -21,7 +22,6 @@ class GitDashboard {
             }
             
             await this.loadConfig();
-            this.setupEventListeners();
             await this.loadData();
         } catch (error) {
             console.error('Error initializing Git dashboard:', error);
@@ -155,12 +155,31 @@ class GitDashboard {
         };
         
         // Map team members to email for easier lookup
-        this.teamMemberEmails = new Map(
-            this.config.teamMembers.map(member => [member.email.toLowerCase(), {
-                name: member.name,
-                id: member.id || member.email.split('@')[0].toLowerCase()
-            }])
-        );
+        // Handle both string emails and object format { name, email, id }
+        this.teamMemberEmails = new Map();
+        
+        if (Array.isArray(this.config.teamMembers) && this.config.teamMembers.length > 0) {
+            this.config.teamMembers.forEach(member => {
+                let email, name, id;
+                
+                if (typeof member === 'string') {
+                    // Member is just an email string
+                    email = member.toLowerCase();
+                    name = email.split('@')[0];
+                    id = email.split('@')[0].toLowerCase();
+                } else if (member && typeof member === 'object' && member.email) {
+                    // Member is an object with email property
+                    email = member.email.toLowerCase();
+                    name = member.name || email.split('@')[0];
+                    id = member.id || email.split('@')[0].toLowerCase();
+                } else {
+                    // Invalid member format, skip
+                    return;
+                }
+                
+                this.teamMemberEmails.set(email, { name, id });
+            });
+        }
     }
 
     async loadData() {
@@ -335,7 +354,8 @@ class GitDashboard {
         }
         
         // Initialize commit stats for each team member with all dates set to 0
-        this.teamMemberEmails.forEach((member, email) => {
+        if (this.teamMemberEmails && this.teamMemberEmails.size > 0) {
+            this.teamMemberEmails.forEach((member, email) => {
             this.commitStats[email] = {
                 id: member.id,
                 name: member.name,
@@ -349,11 +369,12 @@ class GitDashboard {
                 this.commitStats[email].days[date] = [];
             });
         });
+        }
         
         // Process each commit and group by author and date
         this.commits.forEach(commit => {
             const email = commit.author?.email?.toLowerCase() || 'unknown@example.com';
-            const author = this.teamMemberEmails.get(email) || { name: email.split('@')[0], id: email.split('@')[0] };
+            const author = (this.teamMemberEmails && this.teamMemberEmails.get(email)) || { name: email.split('@')[0], id: email.split('@')[0] };
             const date = new Date(commit.author?.date).toISOString().split('T')[0];
             
             // Initialize author if not exists
@@ -484,7 +505,7 @@ class GitDashboard {
         const commitIds = element.getAttribute('data-commits').split(',');
         const date = element.getAttribute('data-date');
         const author = element.getAttribute('data-author');
-        const member = this.teamMemberEmails.get(author) || { name: author };
+        const member = (this.teamMemberEmails && this.teamMemberEmails.get(author)) || { name: author };
         
         // Get commit details
         const commits = commitIds.map(id => this.commitDetails[id]).filter(Boolean);
@@ -637,6 +658,14 @@ class GitDashboard {
         if (vote > 0) return 'Approved';
         if (vote < 0) return 'Rejected';
         return 'No vote';
+    }
+    
+    updateLastUpdated() {
+        const lastUpdatedElement = document.getElementById('lastUpdated');
+        if (lastUpdatedElement) {
+            const now = new Date();
+            lastUpdatedElement.textContent = now.toLocaleString();
+        }
     }
 }
 

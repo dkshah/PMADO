@@ -40,9 +40,20 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Set common settings
         document.getElementById('defaultBranch').value = settings.branch || 'main';
-        document.getElementById('teamMembers').value = Array.isArray(settings.teamMembers) 
-            ? settings.teamMembers.join(', ') 
-            : '';
+        
+        // Parse team members - handle both array of strings and array of objects
+        let teamMembersStr = '';
+        if (Array.isArray(settings.teamMembers)) {
+            if (settings.teamMembers.length > 0) {
+                // Check if it's an array of objects with name/email or just strings
+                if (typeof settings.teamMembers[0] === 'object') {
+                    teamMembersStr = settings.teamMembers.map(m => m.email).join(', ');
+                } else {
+                    teamMembersStr = settings.teamMembers.join(', ');
+                }
+            }
+        }
+        document.getElementById('teamMembers').value = teamMembersStr;
             
         updateProviderSettings();
     }

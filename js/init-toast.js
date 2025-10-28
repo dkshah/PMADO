@@ -19,4 +19,5 @@ if (document.readyState === 'loading') {
     initToastSystem();
 }
 
-export { initToastSystem };
+// Make it globally available
+window.initToastSystem = initToastSystem;
