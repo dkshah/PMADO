@@ -8,8 +8,27 @@ class Reports {
 
     // Initialize reports
     async init() {
-        await this.loadData();
-        this.render();
+        try {
+            // Wait for ADO service to be ready
+            if (!window.adoService || !window.adoService.config) {
+                await new Promise(resolve => {
+                    const checkConfig = setInterval(() => {
+                        if (window.adoService && window.adoService.config) {
+                            clearInterval(checkConfig);
+                            resolve();
+                        }
+                    }, 100);
+                });
+            }
+            
+            await this.loadData();
+            this.render();
+        } catch (error) {
+            console.error('Error initializing reports:', error);
+            if (window.Toast) {
+                window.Toast.error('Failed to initialize reports. Please check your configuration.');
+            }
+        }
     }
 
     // Load data

@@ -20,9 +20,15 @@ const mimeTypes = {
 };
 
 const server = http.createServer((req, res) => {
-    // Handle ADO API proxy requests
+    // Handle API proxy requests
     if (req.url.startsWith('/api/ado/')) {
         handleAdoProxy(req, res);
+        return;
+    }
+    
+    // Handle GitHub API proxy requests
+    if (req.url.startsWith('/api/github/')) {
+        handleGitHubProxy(req, res);
         return;
     }
 
@@ -73,6 +79,54 @@ function handleAdoProxy(req, res) {
     }).on('error', (error) => {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: error.message }));
+    });
+}
+
+function handleGitHubProxy(req, res) {
+    // Extract the actual GitHub API URL from the request
+    const githubPath = req.url.replace('/api/github/', '');
+    const githubUrl = `https://api.github.com/${githubPath}`;
+    
+    // Get authorization header from request
+    const authHeader = req.headers['authorization'];
+    
+    // Make request to GitHub API
+    const options = {
+        method: req.method,
+        headers: {
+            'User-Agent': 'DevOps-Insight-App',
+            'Accept': 'application/vnd.github.v3+json'
+        }
+    };
+    
+    if (authHeader) {
+        options.headers['Authorization'] = authHeader;
+    }
+
+    https.get(githubUrl, options, (githubRes) => {
+        let data = [];
+
+        githubRes.on('data', (chunk) => {
+            data.push(chunk);
+        });
+
+        githubRes.on('end', () => {
+            // Add CORS headers
+            res.writeHead(githubRes.statusCode, {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+            });
+            res.end(Buffer.concat(data));
+        });
+    }).on('error', (error) => {
+        console.error('GitHub API Error:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ 
+            error: 'GitHub API request failed',
+            details: error.message 
+        }));
     });
 }
 

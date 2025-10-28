@@ -122,21 +122,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function testGitHubConnection(settings) {
-        if (!settings.username || !settings.token || !settings.repository) {
-            throw new Error('Please fill in all required fields');
-        }
-        
-        const url = `https://api.github.com/repos/${settings.username}/${settings.repository}`;
-        const response = await fetch(url, {
-            headers: {
-                'Authorization': `token ${settings.token}`,
-                'Accept': 'application/vnd.github.v3+json'
+        const { username, token, repository } = settings;
+        // Use the proxy server for GitHub API calls
+        const url = `/api/github/repos/${username}/${repository}`;
+
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+
+            if (response.ok) {
+                return { success: true, message: 'Successfully connected to GitHub repository' };
+            } else {
+                const error = await response.json();
+                return { 
+                    success: false, 
+                    message: error.message || 'Failed to connect to GitHub. Please check your credentials.'
+                };
             }
-        });
-        
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Failed to connect to GitHub');
+        } catch (error) {
+            console.error('GitHub connection error:', error);
+            return { 
+                success: false, 
+                message: `Connection error: ${error.message}. Make sure the server is running.` 
+            };
         }
     }
     

@@ -119,36 +119,48 @@ class App {
         icon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
     }
 
-    // Switch tab
-    async switchTab(tabName) {
-        this.currentTab = tabName;
-
-        // Update tab buttons and sidebar items
-        document.querySelectorAll('.tab-btn, .sidebar-nav-item').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.tab === tabName);
-        });
-
-        // Update tab content
-        document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.toggle('active', content.id === tabName);
-        });
-
-        // Update breadcrumb
-        const breadcrumbPage = document.getElementById('currentPage');
-        if (breadcrumbPage) {
-            const pageNames = {
-                'dashboard': 'Dashboard',
-                'kanban': 'Kanban Board',
-                'reports': 'Reports',
-                'time': 'Time Tracking',
-                'settings': 'Settings'
-            };
-            breadcrumbPage.textContent = pageNames[tabName] || 'Dashboard';
-        }
-
-        // Initialize tab content if needed
-        if (this.initialized) {
-            await this.loadTabData(tabName);
+    // Switch tabs
+    async switchTab(tabId) {
+        try {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-btn, .sidebar-nav-item').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            const tabContent = document.getElementById(tabId);
+            if (tabContent) {
+                tabContent.classList.add('active');
+            }
+            
+            // Add active class to selected tab button
+            const tabButton = document.querySelector(`[data-tab="${tabId}"], [href*="${tabId}"]`);
+            if (tabButton) {
+                tabButton.classList.add('active');
+            }
+            
+            // Initialize specific tab content if needed
+            if (tabId === 'kanban' && window.kanban) {
+                await window.kanban.init();
+            } else if (tabId === 'reports' && window.reports) {
+                await window.reports.init();
+            } else if (tabId === 'time' && window.timeTracking) {
+                await window.timeTracking.init();
+            } else if (tabId === 'ai-summary' && window.aiSummary) {
+                await window.aiSummary.init();
+            } else if (tabId === 'git' && window.gitDashboard) {
+                await window.gitDashboard.init();
+            }
+        } catch (error) {
+            console.error(`Error switching to tab ${tabId}:`, error);
+            if (window.Toast) {
+                window.Toast.error(`Failed to load ${tabId}. Please try again.`);
+            }
         }
     }
 
