@@ -90,47 +90,6 @@
                     <small>Required for AI Summary feature. Your key is stored locally in your browser.</small>
                 </div>
                 
-                <!-- Git Configuration Section -->
-                <div class="form-section">
-                    <h3><i class="fab fa-git-alt"></i> Git Configuration</h3>
-                    
-                    <div class="form-group">
-                        <label for="gitRepoName">Repository Name:</label>
-                        <input type="text" id="gitRepoName" placeholder="Your Git repository name">
-                        <small>The name of your Git repository in Azure DevOps</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="gitDefaultBranch">Default Branch:</label>
-                        <input type="text" id="gitDefaultBranch" placeholder="main" value="main">
-                        <small>Default branch for your repository (usually 'main' or 'master')</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="gitDevBranch">Development Branch:</label>
-                        <input type="text" id="gitDevBranch" placeholder="develop" value="develop">
-                        <small>Development branch for your repository (usually 'develop')</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Team Members:</label>
-                        <div id="teamMembersContainer">
-                            <!-- Team members will be added here dynamically -->
-                            <div class="team-member-entry">
-                                <input type="text" class="member-name" placeholder="Display Name" style="width: 35%;">
-                                <input type="email" class="member-email" placeholder="Git Email" style="width: 60%;">
-                                <button type="button" class="btn-icon remove-member" title="Remove member">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <button type="button" id="addTeamMember" class="btn btn-secondary btn-sm">
-                            <i class="fas fa-plus"></i> Add Team Member
-                        </button>
-                        <small>Add all team members who contribute to the repository</small>
-                    </div>
-                </div>
-                
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Save Configuration

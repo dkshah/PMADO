@@ -332,5 +332,6 @@ class Reports {
     }
 }
 
-// Create global instance
+// Create and expose global instance
 const reports = new Reports();
+window.reports = reports;

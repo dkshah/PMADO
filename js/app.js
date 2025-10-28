@@ -185,6 +185,59 @@ class App {
         }
     }
 
+    // Show configuration modal
+    showConfigModal() {
+        const modal = document.getElementById('configModal');
+        if (!modal) return;
+
+        // Show the modal
+        modal.style.display = 'flex';
+
+        // Populate form with existing config if available
+        if (this.config) {
+            // Azure DevOps settings
+            const orgUrlEl = document.getElementById('orgUrl');
+            const projectNameEl = document.getElementById('projectName');
+            const patEl = document.getElementById('pat');
+            const currentSprintQueryEl = document.getElementById('currentSprintQuery');
+            const previousSprintQueryEl = document.getElementById('previousSprintQuery');
+            const futureReleaseQueryEl = document.getElementById('futureReleaseQuery');
+            
+            if (orgUrlEl) orgUrlEl.value = this.config.organizationUrl || '';
+            if (projectNameEl) projectNameEl.value = this.config.projectName || '';
+            if (patEl) patEl.value = this.config.personalAccessToken || '';
+            
+            if (currentSprintQueryEl) currentSprintQueryEl.value = this.config.queries?.currentSprint || '';
+            if (previousSprintQueryEl) previousSprintQueryEl.value = this.config.queries?.previousSprint || '';
+            if (futureReleaseQueryEl) futureReleaseQueryEl.value = this.config.queries?.futureRelease || '';
+
+            // Clear existing team members
+            const container = document.getElementById('teamMembersContainer');
+            if (container) container.innerHTML = '';
+            
+            // Add team members
+            const teamMembers = this.config.gitConfig?.teamMembers || [];
+            if (teamMembers.length > 0) {
+                teamMembers.forEach(member => {
+                    this.addTeamMember(member.name, member.email);
+                });
+            } else {
+                // Add one empty row by default
+                this.addTeamMember();
+            }
+
+            // Load Hugging Face API key
+            const savedHfKey = localStorage.getItem('hfApiKey');
+            const hfApiKeyEl = document.getElementById('hfApiKeyModal');
+            if (savedHfKey && hfApiKeyEl) {
+                hfApiKeyEl.value = savedHfKey;
+            }
+        } else {
+            // Add one empty row by default when no config exists
+            this.addTeamMember();
+        }
+    }
+
     // Refresh all data
     async refreshData() {
         const refreshBtn = document.getElementById('refreshBtn');
@@ -201,69 +254,6 @@ class App {
         }
     }
 
-    // Add a new team member row
-    addTeamMember(name = '', email = '') {
-        const container = document.getElementById('teamMembersContainer');
-        if (!container) return;
-
-        const memberHtml = `
-            <div class="team-member-entry">
-                <input type="text" class="member-name" placeholder="Display Name" value="${name}" style="width: 35%;">
-                <input type="email" class="member-email" placeholder="Git Email" value="${email}" style="width: 60%;">
-                <button type="button" class="btn-icon remove-member" title="Remove member">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        `;
-        container.insertAdjacentHTML('beforeend', memberHtml);
-    }
-
-    // Show configuration modal
-    showConfigModal() {
-        const modal = document.getElementById('configModal');
-        modal.style.display = 'flex';
-
-        // Populate form with existing config
-        if (this.config) {
-            // Azure DevOps settings
-            document.getElementById('orgUrl').value = this.config.organizationUrl || '';
-            document.getElementById('projectName').value = this.config.projectName || '';
-            document.getElementById('pat').value = this.config.personalAccessToken || '';
-            document.getElementById('currentSprintQuery').value = this.config.queries?.currentSprint || '';
-            document.getElementById('previousSprintQuery').value = this.config.queries?.previousSprint || '';
-            document.getElementById('futureReleaseQuery').value = this.config.queries?.futureRelease || '';
-            
-            // Git settings
-            document.getElementById('gitRepoName').value = this.config.gitConfig?.repository || '';
-            document.getElementById('gitDefaultBranch').value = this.config.gitConfig?.defaultBranch || 'main';
-            document.getElementById('gitDevBranch').value = this.config.gitConfig?.developmentBranch || 'develop';
-            
-            // Clear existing team members
-            const container = document.getElementById('teamMembersContainer');
-            if (container) container.innerHTML = '';
-            
-            // Add team members
-            const teamMembers = this.config.gitConfig?.teamMembers || [];
-            if (teamMembers.length > 0) {
-                teamMembers.forEach(member => {
-                    this.addTeamMember(member.name, member.email);
-                });
-            } else {
-                // Add one empty row by default
-                this.addTeamMember();
-            }
-        } else {
-            // Add one empty row by default when no config exists
-            this.addTeamMember();
-        }
-
-        // Load Hugging Face API key
-        const savedHfKey = localStorage.getItem('hfApiKey');
-        if (savedHfKey) {
-            document.getElementById('hfApiKeyModal').value = savedHfKey;
-        }
-    }
-
     // Handle config form submission
     async handleConfigSubmit() {
         // Collect team members
@@ -277,20 +267,33 @@ class App {
             }
         });
 
+        // Get required fields with null checks
+        const orgUrlEl = document.getElementById('orgUrl');
+        const projectNameEl = document.getElementById('projectName');
+        const patEl = document.getElementById('pat');
+        const currentSprintQueryEl = document.getElementById('currentSprintQuery');
+        const previousSprintQueryEl = document.getElementById('previousSprintQuery');
+        const futureReleaseQueryEl = document.getElementById('futureReleaseQuery');
+        
+        // Get optional Git config fields if they exist
+        const gitRepoNameEl = document.getElementById('gitRepoName');
+        const gitDefaultBranchEl = document.getElementById('gitDefaultBranch');
+        const gitDevBranchEl = document.getElementById('gitDevBranch');
+        
         const config = {
-            organizationUrl: document.getElementById('orgUrl').value.trim(),
-            projectName: document.getElementById('projectName').value.trim(),
-            personalAccessToken: document.getElementById('pat').value.trim(),
+            organizationUrl: orgUrlEl ? orgUrlEl.value.trim() : '',
+            projectName: projectNameEl ? projectNameEl.value.trim() : '',
+            personalAccessToken: patEl ? patEl.value.trim() : '',
             queries: {
-                currentSprint: document.getElementById('currentSprintQuery').value.trim(),
-                previousSprint: document.getElementById('previousSprintQuery').value.trim(),
-                futureRelease: document.getElementById('futureReleaseQuery').value.trim()
+                currentSprint: currentSprintQueryEl ? currentSprintQueryEl.value.trim() : '',
+                previousSprint: previousSprintQueryEl ? previousSprintQueryEl.value.trim() : '',
+                futureRelease: futureReleaseQueryEl ? futureReleaseQueryEl.value.trim() : ''
             },
             gitConfig: {
-                repository: document.getElementById('gitRepoName').value.trim(),
-                defaultBranch: document.getElementById('gitDefaultBranch').value.trim() || 'main',
-                developmentBranch: document.getElementById('gitDevBranch').value.trim() || 'develop',
-                teamMembers: teamMembers
+                repository: gitRepoNameEl ? gitRepoNameEl.value.trim() : '',
+                defaultBranch: gitDefaultBranchEl ? (gitDefaultBranchEl.value.trim() || 'main') : 'main',
+                developmentBranch: gitDevBranchEl ? (gitDevBranchEl.value.trim() || 'develop') : 'develop',
+                teamMembers: teamMembers || []
             },
             apiVersion: ADO_CONFIG.apiVersion,
             refreshInterval: ADO_CONFIG.refreshInterval,

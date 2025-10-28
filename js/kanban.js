@@ -227,5 +227,6 @@ class KanbanBoard {
     }
 }
 
-// Create global instance
+// Create and expose global instance
 const kanbanBoard = new KanbanBoard();
+window.kanban = kanbanBoard;

@@ -396,5 +396,6 @@ class TimeTracking {
     }
 }
 
-// Create global instance
+// Create and expose global instance
 const timeTracking = new TimeTracking();
+window.timeTracking = timeTracking;

@@ -489,5 +489,6 @@ ${insightsText}
     }
 }
 
-// Initialize AI Summary module
+// Create and expose global instance
 const aiSummary = new AISummary();
+window.aiSummary = aiSummary;
