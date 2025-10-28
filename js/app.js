@@ -316,7 +316,9 @@ class App {
             await this.refreshData();
         }
 
-        showNotification('Configuration saved successfully');
+        if (window.Toast) {
+            window.Toast.success('Configuration saved successfully');
+        }
     }
 
     // Initialize all modules
@@ -330,10 +332,14 @@ class App {
             await timeTracking.init();
             
             this.initialized = true;
-            showNotification('Dashboard loaded successfully');
+            if (window.Toast) {
+                window.Toast.success('Dashboard loaded successfully');
+            }
         } catch (error) {
             console.error('Error initializing modules:', error);
-            showError('Failed to load dashboard. Please check your configuration and try again.');
+            if (window.Toast) {
+                window.Toast.error('Failed to load dashboard. Please check your configuration and try again.');
+            }
         } finally {
             showLoading(false);
         }

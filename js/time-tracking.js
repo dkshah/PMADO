@@ -6,8 +6,43 @@ class TimeTracking {
 
     // Initialize time tracking
     async init() {
-        await this.loadData();
-        this.render();
+        try {
+            // Wait for ADO service to be ready
+            if (!window.adoService || !window.adoService.config) {
+                await new Promise(resolve => {
+                    const checkConfig = setInterval(() => {
+                        if (window.adoService && window.adoService.config) {
+                            clearInterval(checkConfig);
+                            resolve();
+                        }
+                    }, 100);
+                    // Timeout after 5 seconds
+                    setTimeout(() => {
+                        clearInterval(checkConfig);
+                        resolve();
+                    }, 5000);
+                });
+            }
+            
+            if (!window.adoService || !window.adoService.config) {
+                throw new Error('ADO service not configured. Please configure your Azure DevOps settings.');
+            }
+            
+            await this.loadData();
+            this.render();
+            this.setupEventListeners();
+        } catch (error) {
+            console.error('Error initializing time tracking:', error);
+            if (window.Toast) {
+                window.Toast.error('Failed to initialize time tracking: ' + error.message);
+            }
+        }
+    }
+
+    // Setup event listeners
+    setupEventListeners() {
+        // Add any event listeners for time tracking here if needed
+        console.log('Time tracking event listeners initialized');
     }
 
     // Load data

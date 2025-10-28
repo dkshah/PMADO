@@ -11,22 +11,32 @@ class Reports {
         try {
             // Wait for ADO service to be ready
             if (!window.adoService || !window.adoService.config) {
-                await new Promise(resolve => {
+                await new Promise((resolve, reject) => {
+                    let attempts = 0;
                     const checkConfig = setInterval(() => {
+                        attempts++;
                         if (window.adoService && window.adoService.config) {
                             clearInterval(checkConfig);
                             resolve();
+                        } else if (attempts > 50) { // 5 seconds timeout
+                            clearInterval(checkConfig);
+                            reject(new Error('ADO service not configured'));
                         }
                     }, 100);
                 });
             }
             
             await this.loadData();
+            if (this.currentSprintData.length === 0 && this.previousSprintData.length === 0) {
+                if (window.Toast) {
+                    window.Toast.info('No data available. Please check your configuration and ensure you have work items.');
+                }
+            }
             this.render();
         } catch (error) {
             console.error('Error initializing reports:', error);
             if (window.Toast) {
-                window.Toast.error('Failed to initialize reports. Please check your configuration.');
+                window.Toast.error('Failed to initialize reports: ' + error.message);
             }
         }
     }
@@ -37,9 +47,17 @@ class Reports {
             showLoading(true);
             this.currentSprintData = await adoService.fetchCurrentSprint();
             this.previousSprintData = await adoService.fetchPreviousSprint();
+            console.log('Reports data loaded:', {
+                currentSprint: this.currentSprintData.length,
+                previousSprint: this.previousSprintData.length
+            });
         } catch (error) {
             console.error('Error loading reports data:', error);
-            showError('Failed to load reports data.');
+            if (window.Toast) {
+                window.Toast.error('Failed to load reports data: ' + error.message);
+            }
+            this.currentSprintData = [];
+            this.previousSprintData = [];
         } finally {
             showLoading(false);
         }
@@ -47,10 +65,17 @@ class Reports {
 
     // Render all charts
     render() {
-        this.renderVelocityChart();
-        this.renderBurndownChart();
-        this.renderDistributionChart();
-        this.renderPriorityChart();
+        try {
+            this.renderVelocityChart();
+            this.renderBurndownChart();
+            this.renderDistributionChart();
+            this.renderPriorityChart();
+        } catch (error) {
+            console.error('Error rendering reports:', error);
+            if (window.Toast) {
+                window.Toast.error('Error rendering charts: ' + error.message);
+            }
+        }
     }
 
     // Render velocity chart

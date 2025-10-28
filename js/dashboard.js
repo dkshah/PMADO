@@ -7,8 +7,32 @@ class Dashboard {
 
     // Initialize dashboard
     async init() {
-        await this.loadData();
-        this.setupEventListeners();
+        try {
+            // Wait for ADO service to be ready
+            if (!window.adoService || !window.adoService.config) {
+                await new Promise((resolve, reject) => {
+                    let attempts = 0;
+                    const checkConfig = setInterval(() => {
+                        attempts++;
+                        if (window.adoService && window.adoService.config) {
+                            clearInterval(checkConfig);
+                            resolve();
+                        } else if (attempts > 50) { // 5 seconds timeout
+                            clearInterval(checkConfig);
+                            reject(new Error('ADO service not configured'));
+                        }
+                    }, 100);
+                });
+            }
+            
+            await this.loadData();
+            this.setupEventListeners();
+        } catch (error) {
+            console.error('Error initializing dashboard:', error);
+            if (window.Toast) {
+                window.Toast.error('Failed to initialize dashboard: ' + error.message);
+            }
+        }
     }
 
     // Setup event listeners

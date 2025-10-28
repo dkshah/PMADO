@@ -73,12 +73,19 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         
         try {
-            await window.gitSettings.saveSettings(settings);
-            showNotification('Settings saved successfully!', 'success');
+            if (!window.gitSettings) {
+                throw new Error('Git settings service not initialized');
+            }
+            window.gitSettings.saveSettings(settings);
+            if (window.Toast) {
+                window.Toast.success('Settings saved successfully!');
+            }
             closeModal();
         } catch (error) {
             console.error('Error saving settings:', error);
-            showNotification('Failed to save settings: ' + error.message, 'error');
+            if (window.Toast) {
+                window.Toast.error('Failed to save settings: ' + error.message);
+            }
         }
     }
 
@@ -105,16 +112,25 @@ document.addEventListener('DOMContentLoaded', () => {
             testConnectionBtn.disabled = true;
             testConnectionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
             
+            let result;
             if (provider === 'github') {
-                await testGitHubConnection(settings.github);
+                result = await testGitHubConnection(settings.github);
             } else {
-                await testAzureConnection(settings.azure);
+                result = await testAzureConnection(settings.azure);
             }
             
-            showNotification('Connection successful!', 'success');
+            if (window.Toast) {
+                if (result.success) {
+                    window.Toast.success(result.message);
+                } else {
+                    window.Toast.error(result.message);
+                }
+            }
         } catch (error) {
             console.error('Connection test failed:', error);
-            showNotification('Connection failed: ' + error.message, 'error');
+            if (window.Toast) {
+                window.Toast.error('Connection failed: ' + error.message);
+            }
         } finally {
             testConnectionBtn.disabled = false;
             testConnectionBtn.innerHTML = '<i class="fas fa-plug"></i> Test Connection';
@@ -202,49 +218,3 @@ document.addEventListener('DOMContentLoaded', () => {
     window.openGitSettings = openModal;
 });
 
-// Helper function to show notifications
-function showNotification(message, type = 'info') {
-    // You can replace this with your preferred notification system
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.remove();
-    }, 5000);
-}
-
-// Add CSS for notifications
-const style = document.createElement('style');
-style.textContent = `
-    .notification {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        padding: 12px 24px;
-        border-radius: 4px;
-        color: white;
-        z-index: 1000;
-        animation: slideIn 0.3s ease-out;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    }
-    
-    .notification.success {
-        background-color: #38a169;
-    }
-    
-    .notification.error {
-        background-color: #e53e3e;
-    }
-    
-    .notification.info {
-        background-color: #3182ce;
-    }
-    
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-`;
-document.head.appendChild(style);
