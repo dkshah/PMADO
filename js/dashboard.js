@@ -52,8 +52,9 @@ class Dashboard {
 
             this.render();
         } catch (error) {
-            console.error('Error loading dashboard data:', error);
-            showError('Failed to load data. Please check your configuration.');
+            if (window.Toast) {
+                window.Toast.error(`Error loading dashboard: ${error.message}`);
+            }
         } finally {
             showLoading(false);
         }

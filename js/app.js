@@ -27,7 +27,9 @@ class App {
                 this.config = JSON.parse(savedConfig);
                 adoService.init(this.config);
             } catch (error) {
-                console.error('Error loading config:', error);
+                if (window.Toast) {
+                    window.Toast.error(`Error loading config: ${error.message}`);
+                }
                 this.config = null;
             }
         }

@@ -1688,6 +1688,130 @@ body {
     }
 }
 
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 300px;
+    pointer-events: none;
+}
+
+.toast {
+    padding: 10px 16px;
+    border-radius: var(--border-radius-sm);
+    color: white;
+    display: flex;
+    align-items: flex-start;
+    box-shadow: var(--shadow-md);
+    transform: translateX(120%);
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    opacity: 0;
+    pointer-events: auto;
+    position: relative;
+    overflow: hidden;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.toast::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast.hide {
+    opacity: 0;
+    transform: translateX(120%);
+    margin-top: -100%;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    height: 0;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+.toast-success {
+    background-color: var(--success-color);
+    background-image: linear-gradient(135deg, var(--success-color) 0%, #0d6e0d 100%);
+}
+
+.toast-error {
+    background-color: var(--danger-color);
+    background-image: linear-gradient(135deg, var(--danger-color) 0%, #b71c1c 100%);
+}
+
+.toast-warning {
+    background-color: var(--warning-color);
+    background-image: linear-gradient(135deg, var(--warning-color) 0%, #e65100 100%);
+    color: #1a1a1a;
+}
+
+.toast-info {
+    background-color: var(--info-color);
+    background-image: linear-gradient(135deg, var(--info-color) 0%, #0d47a1 100%);
+}
+
+.toast-message {
+    flex: 1;
+    padding-right: 24px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 14px;
+    opacity: 0.7;
+    padding: 2px;
+    margin: -2px -2px -2px 8px;
+    line-height: 1;
+    border-radius: 50%;
+    transition: all 0.2s;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+}
+
+.toast-close:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    to {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+}
+
 /* Scrollbar Styling */
 ::-webkit-scrollbar {
     width: 8px;

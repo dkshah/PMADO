@@ -18,8 +18,9 @@ class TimeTracking {
             // Get iteration dates for the sprint
             this.iterationDates = adoService.getIterationDates(this.workItems);
         } catch (error) {
-            console.error('Error loading time tracking data:', error);
-            showError('Failed to load time tracking data.');
+            if (window.Toast) {
+                window.Toast.error(`Error loading time tracking data: ${error.message}`);
+            }
         } finally {
             showLoading(false);
         }

@@ -37,8 +37,9 @@ class KanbanBoard {
             this.filteredItems = [...this.workItems];
             this.render();
         } catch (error) {
-            console.error('Error loading Kanban data:', error);
-            showError('Failed to load Kanban board data.');
+            if (window.Toast) {
+                window.Toast.error(`Error loading Kanban data: ${error.message}`);
+            }
         } finally {
             showLoading(false);
         }

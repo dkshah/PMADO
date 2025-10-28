@@ -11,9 +11,26 @@ class GitDashboard {
     }
 
     async init() {
-        await this.loadConfig();
-        await this.loadData();
-        this.render();
+        try {
+            // Initialize Git settings if available
+            if (window.gitSettings) {
+                // Listen for settings changes
+                window.gitSettings.onSettingsUpdate(() => {
+                    this.loadConfig().then(() => this.loadData());
+                });
+            }
+            
+            await this.loadConfig();
+            this.setupEventListeners();
+            await this.loadData();
+        } catch (error) {
+            console.error('Error initializing Git dashboard:', error);
+            if (window.Toast) {
+                window.Toast.error(`Failed to initialize Git dashboard: ${error.message}`);
+            } else {
+                console.error('Toast not available:', error);
+            }
+        }
     }
     
     initializeEventListeners() {
@@ -30,6 +47,27 @@ class GitDashboard {
         const refreshButton = document.getElementById('refreshCommits');
         if (refreshButton) {
             refreshButton.addEventListener('click', () => this.loadData());
+        }
+        
+        // Git Settings button
+        const gitSettingsBtn = document.getElementById('openGitSettings');
+        if (gitSettingsBtn) {
+            gitSettingsBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const modal = document.getElementById('gitSettingsModal');
+                if (modal) {
+                    modal.style.display = 'block';
+                    // Trigger any initialization needed for the modal
+                    if (window.gitSettings && typeof window.gitSettings.openModal === 'function') {
+                        window.gitSettings.openModal();
+                    }
+                } else {
+                    console.error('Git settings modal not found');
+                    if (window.Toast) {
+                        window.Toast.error('Could not open Git settings. Please try refreshing the page.');
+                    }
+                }
+            });
         }
         
         // Modal close button
@@ -52,18 +90,68 @@ class GitDashboard {
     }
 
     async loadConfig() {
-        // Load from app config
+        // Load settings from GitSettings
+        this.settings = window.gitSettings || {};
+        
+        // Backward compatibility with old config
         const appConfig = JSON.parse(localStorage.getItem('adoConfig') || '{}');
         const gitConfig = appConfig.gitConfig || {};
         
+        // Fallback for when adoService is not available
+        const getSprintDates = () => {
+            try {
+                return window.adoService?.getCurrentSprintDates?.() || {
+                    startDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    endDate: new Date().toISOString().split('T')[0]
+                };
+            } catch (e) {
+                // If there's an error, default to last 14 days
+                return {
+                    startDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    endDate: new Date().toISOString().split('T')[0]
+                };
+            }
+        };
+
+        // Get settings from GitSettings or fallback to config
+        const settings = this.settings.getSettings ? this.settings.getSettings() : {};
+        const isGitHub = settings.gitProvider === 'github';
+        
         this.config = {
-            gitAccount: appConfig.organizationUrl?.split('/').pop() || '',
-            repository: gitConfig.repository || '',
-            defaultBranch: gitConfig.defaultBranch || 'main',
-            developmentBranch: gitConfig.developmentBranch || 'develop',
-            teamMembers: gitConfig.teamMembers || [],
-            currentSprint: adoService.getCurrentSprintDates(),
-            organizationUrl: appConfig.organizationUrl || ''
+            // Git provider info
+            isGitHub,
+            gitProvider: settings.gitProvider || 'github',
+            
+            // Repository settings
+            gitAccount: isGitHub ? (settings.github?.username || '') : (settings.azure?.organization || ''),
+            repository: isGitHub ? (settings.github?.repository || '') : (settings.azure?.repository || ''),
+            defaultBranch: settings.branch || 'main',
+            developmentBranch: settings.developmentBranch || 'develop',
+            
+            // Team settings
+            teamMembers: settings.teamMembers || [],
+            
+            // Sprint settings
+            currentSprint: getSprintDates(),
+            
+            // URLs and API
+            organizationUrl: isGitHub 
+                ? `https://github.com/${settings.github?.username || ''}`
+                : `https://dev.azure.com/${settings.azure?.organization || ''}`,
+            apiBaseUrl: isGitHub 
+                ? 'https://api.github.com'
+                : `https://dev.azure.com/${settings.azure?.organization || ''}/${settings.azure?.project || ''}/_apis/git`,
+            
+            // Authentication
+            authHeader: isGitHub 
+                ? (settings.github?.token ? {
+                    'Authorization': `token ${settings.github.token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                } : {})
+                : (settings.azure?.pat ? {
+                    'Authorization': `Basic ${btoa(':' + settings.azure.pat)}`,
+                    'Content-Type': 'application/json'
+                } : {})
         };
         
         // Map team members to email for easier lookup
@@ -77,8 +165,20 @@ class GitDashboard {
 
     async loadData() {
         const loadingElement = document.querySelector('#git .loading-state');
+        const refreshButton = document.getElementById('refreshCommits');
+        
         try {
-            showLoading(true);
+            // Show loading state
+            if (loadingElement) loadingElement.style.display = 'block';
+            if (refreshButton) {
+                refreshButton.disabled = true;
+                const icon = refreshButton.querySelector('i.fa-sync-alt');
+                if (icon) icon.classList.add('fa-spin');
+            }
+            
+            if (window.Toast) {
+                window.Toast.info('Loading commit data...', 3000);
+            }
             if (loadingElement) loadingElement.style.display = 'flex';
             
             // Load commits for selected timeframe
@@ -90,12 +190,30 @@ class GitDashboard {
             // Render the commit table
             this.renderCommitTable();
             
+            // Update the last updated time
+            this.updateLastUpdated();
+            
+            // Show success message
+            if (window.Toast) {
+                window.Toast.success(`Successfully loaded ${this.commits.length} commits`, 3000);
+            }
         } catch (error) {
-            console.error('Error loading Git data:', error);
-            showError('Failed to load Git data. Please check console for details.');
+            console.error('Error loading commit data:', error);
+            if (window.Toast) {
+                window.Toast.error(`Failed to load commit data: ${error.message}`, 5000);
+            } else {
+                console.error('Error details:', error);
+            }
         } finally {
-            showLoading(false);
+            // Hide loading state
             if (loadingElement) loadingElement.style.display = 'none';
+            
+            // Re-enable refresh button
+            if (refreshButton) {
+                refreshButton.disabled = false;
+                const icon = refreshButton.querySelector('i.fa-sync-alt');
+                if (icon) icon.classList.remove('fa-spin');
+            }
         }
     }
 
@@ -110,8 +228,15 @@ class GitDashboard {
     }
 
     async fetchCommitHistory(days = 14) {
-        if (!this.config.repository) {
-            console.warn('No repository configured');
+        if (!this.config.gitAccount || !this.config.repository) {
+            showError('Git repository not configured. Please check your settings.');
+            return [];
+        }
+        
+        // Check if we have required auth
+        if ((this.config.isGitHub && !this.config.authHeader.Authorization) || 
+            (!this.config.isGitHub && !this.config.authHeader.Authorization)) {
+            showError('Authentication not configured. Please check your Git settings.');
             return [];
         }
 
@@ -120,30 +245,74 @@ class GitDashboard {
         fromDate.setDate(toDate.getDate() - days);
         
         try {
-            // This is a placeholder - actual implementation will use ADO REST API
-            const response = await fetch(
-                `${this.config.organizationUrl}/${this.config.gitAccount}/_apis/git/repositories/${this.config.repository}/commits?` +
-                `searchCriteria.fromDate=${fromDate.toISOString()}&` +
-                `searchCriteria.toDate=${toDate.toISOString()}&` +
-                `api-version=7.0`,
-                {
-                    headers: {
-                        'Authorization': `Basic ${btoa(':' + ADO_CONFIG.personalAccessToken)}`
+            if (this.config.isGitHub) {
+                // GitHub API implementation
+                const since = fromDate.toISOString();
+                const url = `${this.config.apiBaseUrl}/repos/${this.config.gitAccount}/${this.config.repository}/commits?since=${since}&per_page=100`;
+                
+                try {
+                    const response = await fetch(url, {
+                        headers: this.config.authHeader
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.message || 'Failed to fetch commits from GitHub');
                     }
+                    
+                    const commits = await response.json();
+                    
+                    // Transform GitHub API response to match our expected format
+                    return commits.map(commit => ({
+                        commitId: commit.sha,
+                        message: commit.commit.message,
+                        author: {
+                            name: commit.commit.author?.name || commit.author?.login || 'Unknown',
+                            email: commit.commit.author?.email || '',
+                            date: commit.commit.author?.date
+                        },
+                        url: commit.html_url,
+                        // Extract work items from commit message (e.g., #1234)
+                        workItems: (commit.commit.message.match(/#(\d+)/g) || []).map(match => ({
+                            id: match.replace('#', ''),
+                            url: `${this.config.organizationUrl}/${this.config.repository}/issues/${match.replace('#', '')}`,
+                            title: `Work Item ${match}`,
+                            state: 'completed' // Default state for GitHub issues
+                        }))
+                    }));
+                } catch (error) {
+                    if (window.Toast) {
+                        window.Toast.error(`GitHub API Error: ${error.message}`);
+                    }
+                    return [];
                 }
-            );
-            
-            if (!response.ok) {
-                const error = await response.text();
-                throw new Error(`Failed to fetch commit history: ${response.status} ${response.statusText} - ${error}`);
+            } else {
+                // Original Azure DevOps implementation
+                const response = await fetch(
+                    `${this.config.organizationUrl}/${this.config.gitAccount}/_apis/git/repositories/${this.config.repository}/commits?` +
+                    `searchCriteria.fromDate=${fromDate.toISOString()}&` +
+                    `searchCriteria.toDate=${toDate.toISOString()}&` +
+                    `api-version=7.0`,
+                    {
+                        headers: {
+                            'Authorization': `Basic ${btoa(':' + ADO_CONFIG.personalAccessToken)}`
+                        }
+                    }
+                );
+                
+                if (!response.ok) {
+                    const error = await response.text();
+                    throw new Error(`Failed to fetch commit history: ${response.status} ${response.statusText} - ${error}`);
+                }
+                
+                const data = await response.json();
+                return data.value || [];
             }
             
-            const data = await response.json();
-            return data.value || [];
-            
         } catch (error) {
-            console.error('Error fetching commit history:', error);
-            showError(`Error fetching commits: ${error.message}`);
+            if (window.Toast) {
+                window.Toast.error(`Error fetching commits: ${error.message}`);
+            }
             return [];
         }
     }

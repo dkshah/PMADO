@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DevOps Insight - Azure DevOps Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="ai-summary.css">
-    <link rel="stylesheet" href="daily-hours.css">
-    <link rel="stylesheet" href="styles/git-dashboard.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/ai-summary.css">
+    <link rel="stylesheet" href="css/daily-hours.css">
+    <link rel="stylesheet" href="css/git-dashboard.css">
+    <link rel="stylesheet" href="css/git-settings.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -284,8 +285,15 @@
         <!-- Git Dashboard Tab -->
         <div id="git" class="tab-content">
             <div class="page-header">
-                <h2 class="page-title">Git Commit Dashboard</h2>
-                <p class="page-subtitle">Track commit activity by developer for the current sprint</p>
+                <div class="page-header-top">
+                    <div>
+                        <h2 class="page-title">Git Commit Dashboard</h2>
+                        <p class="page-subtitle">Track commit activity by developer for the current sprint</p>
+                    </div>
+                    <button id="openGitSettings" class="btn btn-icon" title="Git Settings">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
                 
                 <div class="commit-controls">
                     <div class="timeframe-selector">
@@ -498,16 +506,113 @@
         </div>
     </div>
 
+    <!-- Git Settings Modal -->
+    <div id="gitSettingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fab fa-git-alt"></i> Git Configuration</h2>
+                <span class="close">&times;</span>
+            </div>
+            <form id="gitSettingsForm">
+                <div class="form-section">
+                    <h3><i class="fas fa-server"></i> Git Provider</h3>
+                    <div class="form-group">
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="gitProvider" value="github" checked>
+                                <i class="fab fa-github"></i> GitHub
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="gitProvider" value="azure">
+                                <i class="fab fa-microsoft"></i> Azure DevOps
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GitHub Settings -->
+                <div id="githubSettings" class="provider-settings">
+                    <h3><i class="fab fa-github"></i> GitHub Settings</h3>
+                    <div class="form-group">
+                        <label for="githubUsername">GitHub Username/Organization:</label>
+                        <input type="text" id="githubUsername" placeholder="your-username-or-org" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="githubToken">Personal Access Token:</label>
+                        <input type="password" id="githubToken" placeholder="GitHub PAT with repo scope" required>
+                        <small>Create at: <a href="https://github.com/settings/tokens" target="_blank">GitHub Tokens</a> (needs 'repo' scope)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="githubRepo">Repository Name:</label>
+                        <input type="text" id="githubRepo" placeholder="repository-name" required>
+                    </div>
+                </div>
+
+                <!-- Azure DevOps Settings -->
+                <div id="azureSettings" class="provider-settings" style="display: none;">
+                    <h3><i class="fab fa-microsoft"></i> Azure DevOps Settings</h3>
+                    <div class="form-group">
+                        <label for="azureOrg">Organization:</label>
+                        <input type="text" id="azureOrg" placeholder="your-organization">
+                    </div>
+                    <div class="form-group">
+                        <label for="azureProject">Project:</label>
+                        <input type="text" id="azureProject" placeholder="project-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="azureRepo">Repository Name:</label>
+                        <input type="text" id="azureRepo" placeholder="repository-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="azurePat">Personal Access Token:</label>
+                        <input type="password" id="azurePat" placeholder="Azure DevOps PAT">
+                        <small>Create at: <a href="https://dev.azure.com/your-org/_usersSettings/tokens" target="_blank">Azure DevOps Tokens</a> (needs 'Code - Read' scope)</small>
+                    </div>
+                </div>
+
+                <!-- Common Settings -->
+                <div class="form-section">
+                    <h3><i class="fas fa-cog"></i> General Settings</h3>
+                    <div class="form-group">
+                        <label for="defaultBranch">Default Branch:</label>
+                        <input type="text" id="defaultBranch" value="main" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="teamMembers">Team Members (comma-separated emails):</label>
+                        <textarea id="teamMembers" rows="3" placeholder="user1@example.com, user2@example.com"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="testConnectionBtn" class="btn btn-secondary">
+                        <i class="fas fa-plug"></i> Test Connection
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="config.js"></script>
-    <script src="ado-service.js"></script>
-    <script src="dashboard.js"></script>
-    <script src="kanban.js"></script>
-    <script src="reports.js"></script>
-    <script src="time-tracking.js"></script>
-    <script src="ai-summary.js"></script>
-    <script src="git-dashboard.js"></script>
-    <script src="app.js"></script>
+    <!-- Toast Notification System -->
+    <div id="toast-container" class="toast-container"></div>
+    
+    <!-- Application Scripts -->
+    <script src="js/init-toast.js"></script>
+    <script src="js/toast.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/git-settings.js"></script>
+    <script src="js/git-settings-modal.js"></script>
+    <script src="js/ado-service.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/kanban.js"></script>
+    <script src="js/reports.js"></script>
+    <script src="js/time-tracking.js"></script>
+    <script src="js/ai-summary.js"></script>
+    <script src="js/git-dashboard.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>

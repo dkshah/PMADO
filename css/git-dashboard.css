@@ -1,4 +1,104 @@
 /* Git Dashboard Styles */
+
+/* Dashboard Controls */
+.dashboard-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 12px;
+}
+
+.control-group:last-child {
+    margin-right: 0;
+}
+
+.control-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.control-select {
+    min-width: 150px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 13px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.control-select:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+}
+
+.control-button {
+    padding: 8px 16px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.control-button:hover {
+    background-color: var(--primary-hover);
+}
+
+.control-button:active {
+    transform: translateY(1px);
+}
+
+.control-button.secondary {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.control-button.secondary:hover {
+    background-color: var(--border-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .dashboard-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .control-group {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 8px;
+    }
+    
+    .control-select {
+        width: 100%;
+    }
+}
+
+/* Main Layout */
 .git-dashboard {
     padding: 20px;
     max-width: 1400px;
