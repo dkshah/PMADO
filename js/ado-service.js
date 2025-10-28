@@ -306,5 +306,6 @@ class ADOService {
     }
 }
 
-// Create global instance
+// Create and expose global instance
 const adoService = new ADOService();
+window.adoService = adoService;
